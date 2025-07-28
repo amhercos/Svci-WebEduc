@@ -6,7 +6,7 @@
     opacity: 0.6;
   }
   50% {
-    opacity: 1; /* Brightest */
+    opacity: 1;
   }
   80% {
     opacity: 0.6;
@@ -18,4 +18,10 @@
 
 .flash-overlay {
   animation: flash-shine 3s ease-in-out forwards;
+  position: absolute;
+  inset: 0;
+  background-color: white;
+  z-index: 50;
+  pointer-events: none;
+  border-radius: inherit;
 }
