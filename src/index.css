@@ -1,8 +1,35 @@
 @import "tailwindcss";
 
+/* Ensure base styles for full height layout */
 html, body, #root {
-    height: 100%;
-    margin: 0;
-    padding: 0;
-    overflow: hidden;
-  }
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  font-family: 'Inter', sans-serif;
+  background-color: #fefefe;
+}
+
+/* Optional: Use Tailwind utility classes directly in JSX for responsiveness */
+
+/* If needed, you can add a responsive container wrapper */
+.responsive-container {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 1rem;
+  box-sizing: border-box;
+}
+
+/* Optional scroll smoothing */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Improve accessibility and mobile responsiveness */
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}

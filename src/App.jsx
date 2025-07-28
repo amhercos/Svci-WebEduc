@@ -79,10 +79,14 @@ function App() {
   };
 
   return (
-    <div className="relative h-screen w-full overflow-hidden flex items-center justify-center text-center">
+    <div className="relative min-h-screen w-full overflow-hidden flex items-center justify-center text-center px-4 sm:px-6 md:px-8">
       <AnimatePresence mode="wait">
         {!showWord && (
-          <motion.div key="wordInput" {...fadeTransition} className="absolute inset-0 flex items-center justify-center">
+          <motion.div
+            key="wordInput"
+            {...fadeTransition}
+            className="absolute inset-0 flex items-center justify-center"
+          >
             <WordInput
               currentWord={currentWord}
               setCurrentWord={setCurrentWord}
@@ -94,12 +98,16 @@ function App() {
         {showWord && (
           <>
             {!hasReadWord && (
-              <motion.div key="wordDisplay" {...fadeTransition} className="absolute inset-0 flex items-center justify-center flex-col">
+              <motion.div
+                key="wordDisplay"
+                {...fadeTransition}
+                className="absolute inset-0 flex items-center justify-center flex-col"
+              >
                 <WordDisplay word={currentWord} />
-                <div className="absolute bottom-20 w-full flex justify-center z-20">
+                <div className="absolute bottom-10 sm:bottom-16 md:bottom-20 w-full flex justify-center z-20">
                   <button
                     onClick={handleWordRead}
-                    className="px-8 py-4 bg-[#FFB4B4]/30 text-white text-xl font-semibold rounded-xl shadow-xl transition backdrop-blur-sm hover:bg-[#E14434]/40"
+                    className="px-6 sm:px-8 py-3 sm:py-4 bg-[#FFB4B4]/30 text-white text-lg sm:text-xl font-semibold rounded-xl shadow-xl transition backdrop-blur-sm hover:bg-[#E14434]/40"
                   >
                     I’ve read the word!
                   </button>
@@ -117,7 +125,7 @@ function App() {
               <motion.div
                 key="reward"
                 {...fadeTransition}
-                className="absolute inset-0 flex flex-col items-center justify-center z-20 bg-gradient-to-br from-yellow-100 via-pink-100 to-purple-200"
+                className="absolute inset-0 flex flex-col items-center justify-center z-20 bg-gradient-to-br from-yellow-100 via-pink-100 to-purple-200 px-4"
               >
                 <Confetti
                   width={window.innerWidth}
@@ -133,12 +141,12 @@ function App() {
                   transition={{ type: 'spring', stiffness: 200, damping: 15 }}
                   className="text-center"
                 >
-                  <h1 className="text-8xl font-extrabold text-rose-600 drop-shadow-md mb-6">
+                  <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-extrabold text-rose-600 drop-shadow-md mb-6">
                     🎉 You got a {chestResult === 'chocolate' ? '🍫 Chocolate' : '⭐ Sticker'}!
                   </h1>
                   <button
                     onClick={handleRewardClaim}
-                    className="relative top-8 px-6 py-3 bg-rose-500 hover:bg-rose-600 text-white text-lg rounded-xl shadow-lg transition"
+                    className="relative top-4 sm:top-6 px-4 sm:px-6 py-2 sm:py-3 bg-rose-500 hover:bg-rose-600 text-white text-base sm:text-lg rounded-xl shadow-lg transition"
                   >
                     Next Word
                   </button>
@@ -149,7 +157,11 @@ function App() {
             {chestResult === 'game' && selectedGame && !gameComplete && (
               <>
                 {showGameIntro ? (
-                  <motion.div key="gameIntro" {...fadeTransition} className="absolute inset-0 flex items-center justify-center z-30">
+                  <motion.div
+                    key="gameIntro"
+                    {...fadeTransition}
+                    className="absolute inset-0 flex items-center justify-center z-30 px-4"
+                  >
                     <GameIntro
                       onContinue={() => setShowGameIntro(false)}
                       gameTitle={selectedGame.title}
