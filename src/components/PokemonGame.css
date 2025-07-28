@@ -1,0 +1,21 @@
+@keyframes flash-shine {
+  0% {
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1; /* Brightest */
+  }
+  80% {
+    opacity: 0.6;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.flash-overlay {
+  animation: flash-shine 3s ease-in-out forwards;
+}
