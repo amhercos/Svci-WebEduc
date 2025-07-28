@@ -41,7 +41,7 @@ function App() {
   };
 
   const handleChestClick = () => {
-    const options = ['game'];
+    const options = ['game', 'sticker', 'chocolate'];
     const result = options[Math.floor(Math.random() * options.length)];
     setChestResult(result);
 
