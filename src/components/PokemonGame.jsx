@@ -86,9 +86,9 @@ const PokemonGame = ({ onComplete }) => {
           <img
             src={pokemon.imageUrl}
             alt={pokemon.name}
-            className="w-40 h-40 sm:w-52 sm:h-52 md:w-64 md:h-64 lg:w-120 lg:h-120 object-contain drop-shadow-2xl"
+            className="w-40 h-40 sm:w-52 sm:h-52 md:w-64 md:h-64 lg:w-160 lg:h-120 object-contain drop-shadow-2xl"
           />
-          <p className="capitalize text-2xl sm:text-3xl md:text-4xl font-bold drop-shadow-md text-white">
+          <p className="text-2xl uppercase sm:text-3xl md:text-4xl font-bold drop-shadow-md text-white">
             {pokemon.name}
           </p>
           <button

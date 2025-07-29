@@ -21,7 +21,7 @@ function App() {
   const [selectedGame, setSelectedGame] = useState(null);
 
   const miniGames = [
-    { title: 'Find the Odd Color', component: OddColorGame },
+    // { title: 'Find the Odd Color', component: OddColorGame },
     // { title: 'Animal Sound Game', component: AnimalSoundGame },
     { title: 'You Caught a Pokemon!', component: PokemonGame },
   ];

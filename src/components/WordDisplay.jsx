@@ -33,8 +33,8 @@ function WordDisplay({ word }) {
       const textWidth = el.scrollWidth;
 
       // Shrink if it overflows
-      while (textWidth > parentWidth && fontSize > 16) {
-        fontSize -= 2;
+      while (textWidth > parentWidth && fontSize > 24) {
+        fontSize -= 1;
         el.style.fontSize = `${fontSize}px`;
       }
 
