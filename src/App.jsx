@@ -22,8 +22,8 @@ function App() {
 
   const miniGames = [
     { title: 'Find the Odd Color', component: OddColorGame },
-    { title: 'Animal Sound Game', component: AnimalSoundGame },
-    { title: 'I Caught a Pokemon!', component: PokemonGame },
+    // { title: 'Animal Sound Game', component: AnimalSoundGame },
+    { title: 'You Caught a Pokemon!', component: PokemonGame },
   ];
 
   const handleWordSubmit = (e) => {
@@ -41,7 +41,10 @@ function App() {
   };
 
   const handleChestClick = () => {
-    const options = ['game', 'sticker', 'chocolate'];
+    const options = ['game', 'chocolate', 'sticker'];
+    // if (Math.random() < 0.5) {
+    //   options.push('game'); 
+    // }
     const result = options[Math.floor(Math.random() * options.length)];
     setChestResult(result);
 

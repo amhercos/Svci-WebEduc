@@ -1,27 +1,177 @@
 @keyframes flash-shine {
   0% {
     opacity: 0;
+    background: transparent;
   }
-  20% {
+  10% {
     opacity: 0.6;
+    background: radial-gradient(circle, #fffacd, #ffffe0, #fffacd);
   }
-  50% {
+  30% {
     opacity: 1;
+    background: radial-gradient(circle, #ffffe0, #fffacd, #ffffe0);
   }
-  80% {
+  70% {
+    opacity: 1;
+    background: radial-gradient(circle, #fffacd, #ffffe0, #fffacd);
+  }
+  90% {
     opacity: 0.6;
+    background: radial-gradient(circle, #fffacd, #fffdd0, #ffffe0);
   }
   100% {
     opacity: 0;
+    background: transparent;
   }
 }
 
+@keyframes flash-electric {
+  0%, 100% { opacity: 0; background: transparent; }
+  30% {
+    opacity: 0.8;
+    background: radial-gradient(circle, #ffff33, #fff200, #ffcc00);
+  }
+  50% {
+    opacity: 1;
+    background: radial-gradient(circle, #fff200, #ffe600, #ffd900);
+  }
+  70% {
+    opacity: 0.8;
+    background: radial-gradient(circle, #fff600, #fff200, #ffee00);
+  }
+}
+
+@keyframes flash-fairy {
+  0%, 100% { opacity: 0; background: transparent; }
+  30% {
+    opacity: 0.8;
+    background: radial-gradient(circle, #ffd3f8, #ff9de2, #ffcaff);
+  }
+  50% {
+    opacity: 1;
+    background: radial-gradient(circle, #ffcaff, #ffd6ff, #ffe3f3);
+  }
+  70% {
+    opacity: 0.8;
+    background: radial-gradient(circle, #ffe4f0, #ffc1e3, #ffb6f2);
+  }
+}
+
+@keyframes flash-fiery {
+  0%, 100% { opacity: 0; background: transparent; }
+  30% {
+    opacity: 0.8;
+    background: radial-gradient(circle, #ff9444, #ff6022, #ff2200);
+  }
+  50% {
+    opacity: 1;
+    background: radial-gradient(circle, #ffaa33, #ff7722, #ff4444);
+  }
+  70% {
+    opacity: 0.8;
+    background: radial-gradient(circle, #ffbb33, #ff5533, #cc0000);
+  }
+}
+
+@keyframes flash-aurora {
+  0%, 100% { opacity: 0; background: transparent; }
+  30% {
+    opacity: 0.8;
+    background: radial-gradient(circle, #00ffe7, #7a00ff, #ff00c8);
+  }
+  50% {
+    opacity: 1;
+    background: radial-gradient(circle, #00cfff, #ae00ff, #ff33cc);
+  }
+  70% {
+    opacity: 0.8;
+    background: radial-gradient(circle, #00d4ff, #8e44ad, #ff99ff);
+  }
+}
+
+@keyframes flash-water {
+  0%, 100% { opacity: 0; background: transparent; }
+  30% {
+    opacity: 0.8;
+    background: radial-gradient(circle, #a0e9ff, #00bfff, #0077be);
+  }
+  50% {
+    opacity: 1;
+    background: radial-gradient(circle, #b2ffff, #0099cc, #0066cc);
+  }
+  70% {
+    opacity: 0.8;
+    background: radial-gradient(circle, #99e6ff, #00b2ee, #004c99);
+  }
+}
+
+@keyframes flash-grass {
+  0%, 100% { opacity: 0; background: transparent; }
+  30% {
+    opacity: 0.8;
+    background: radial-gradient(circle, #ccffcc, #66ff66, #00cc00);
+  }
+  50% {
+    opacity: 1;
+    background: radial-gradient(circle, #b3ffb3, #4dff4d, #009900);
+  }
+  70% {
+    opacity: 0.8;
+    background: radial-gradient(circle, #d9ffd9, #80ff80, #00aa00);
+  }
+}
+
+@keyframes flash-psychic {
+  0%, 100% { opacity: 0; background: transparent; }
+  30% {
+    opacity: 0.8;
+    background: radial-gradient(circle, #e0b3ff, #c266ff, #9900cc);
+  }
+  50% {
+    opacity: 1;
+    background: radial-gradient(circle, #f0ccff, #cc66ff, #8000ff);
+  }
+  70% {
+    opacity: 0.8;
+    background: radial-gradient(circle, #e6ccff, #b366ff, #6600cc);
+  }
+}
+
+@keyframes flash-dragon {
+  0%, 100% { opacity: 0; background: transparent; }
+  30% {
+    opacity: 0.8;
+    background: radial-gradient(circle, #ffcc99, #cc66ff, #ff3333);
+  }
+  50% {
+    opacity: 1;
+    background: radial-gradient(circle, #ffc266, #ff66cc, #cc0033);
+  }
+  70% {
+    opacity: 0.8;
+    background: radial-gradient(circle, #ff9999, #cc33cc, #ff3300);
+  }
+}
+
+/* Base flash overlay style */
 .flash-overlay {
-  animation: flash-shine 3s ease-in-out forwards;
   position: absolute;
   inset: 0;
-  background-color: white;
   z-index: 50;
   pointer-events: none;
   border-radius: inherit;
+  animation-duration: 6s;
+  animation-fill-mode: forwards;
+  animation-timing-function: ease-in-out;
 }
+
+/* Animation assignment classes */
+.flash-shine { animation-name: flash-shine; }
+.flash-electric { animation-name: flash-electric; }
+.flash-fairy { animation-name: flash-fairy; }
+.flash-fiery { animation-name: flash-fiery; }
+.flash-aurora { animation-name: flash-aurora; }
+.flash-water { animation-name: flash-water; }
+.flash-grass { animation-name: flash-grass; }
+.flash-psychic { animation-name: flash-psychic; }
+.flash-dragon { animation-name: flash-dragon; }
