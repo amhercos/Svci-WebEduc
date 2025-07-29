@@ -9,6 +9,8 @@ const PokemonGame = ({ onComplete }) => {
   const [glow, setGlow] = useState(false);
   const [reveal, setReveal] = useState(false);
 
+  const baseUrl = import.meta.env.BASE_URL;
+
   const fetchPokemon = async () => {
     const id = getRandomPokemonId();
     try {
@@ -37,13 +39,14 @@ const PokemonGame = ({ onComplete }) => {
     }, 3000);
   };
 
-  const backgroundClass = reveal
-    ? "bg-[url('/pokemonBackground.jpg')]"
-    : "bg-[url('/wordInputBackground.jpg')]";
+  const backgroundImageUrl = reveal
+    ? `${baseUrl}pokemonBackground.jpg`
+    : `${baseUrl}wordInputBackground.jpg`;
 
   return (
     <div
-      className={`absolute inset-0 ${backgroundClass} bg-cover bg-center flex flex-col items-center justify-center text-white space-y-6 transition-all duration-1000 px-4`}
+      className="absolute inset-0 bg-cover bg-center flex flex-col items-center justify-center text-white space-y-6 transition-all duration-1000 px-4"
+      style={{ backgroundImage: `url(${backgroundImageUrl})` }}
     >
       {glow && (
         <div className="flash-overlay absolute inset-0 bg-white z-20 backdrop-blur-sm pointer-events-none"></div>
@@ -55,7 +58,7 @@ const PokemonGame = ({ onComplete }) => {
           onClick={handlePokeballClick}
         >
           <img
-            src="/pokeball.svg"
+            src={`${baseUrl}pokeball.svg`}
             alt="Pokéball"
             className="w-28 h-28 sm:w-36 sm:h-36 md:w-44 md:h-44 lg:w-52 lg:h-52 drop-shadow-2xl"
           />

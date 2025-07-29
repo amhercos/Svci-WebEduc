@@ -1,12 +1,12 @@
-// src/components/WordInput.jsx
-
 import React from "react";
 
 function WordInput({ currentWord, setCurrentWord, onSubmit }) {
+  const baseUrl = import.meta.env.BASE_URL;
+
   return (
     <div
       className="fixed inset-0 flex items-center justify-center bg-cover bg-center bg-no-repeat px-4"
-      style={{ backgroundImage: "url('/wordInputBackground.jpg')" }}
+      style={{ backgroundImage: `url(${baseUrl}wordInputBackground.jpg)` }}
     >
       <form
         onSubmit={onSubmit}

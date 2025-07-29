@@ -38,6 +38,8 @@ const OddColorGame = ({ onComplete }) => {
   const [width, height] = useWindowSize();
   const intervalRef = useRef(null);
 
+  const baseUrl = import.meta.env.BASE_URL;
+
   useEffect(() => {
     const newLevels = Array.from({ length: TOTAL_LEVELS }, generateLevel);
     setLevels(newLevels);
@@ -117,7 +119,7 @@ const OddColorGame = ({ onComplete }) => {
   return (
     <motion.div
       className="fixed inset-0 overflow-hidden flex flex-col items-center justify-center p-4 bg-cover bg-center bg-no-repeat"
-      style={{ backgroundImage: "url('/gameBackground.jpg')" }}
+      style={{ backgroundImage: `url(${baseUrl}gameBackground.jpg)` }}
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.95 }}
@@ -181,7 +183,11 @@ const OddColorGame = ({ onComplete }) => {
             transition={{ duration: 0.3 }}
           >
             <motion.img
-              src={showFeedback.includes('Correct') ? '/check.png' : '/xmark.png'}
+              src={
+                showFeedback.includes('Correct')
+                  ? `${baseUrl}check.png`
+                  : `${baseUrl}xmark.png`
+              }
               alt="Feedback Icon"
               className="w-40 h-40 mb-4 drop-shadow-2xl"
               initial={{ scale: 0 }}

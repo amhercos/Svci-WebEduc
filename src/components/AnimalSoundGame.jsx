@@ -62,7 +62,7 @@ function AnimalSoundGame({ onComplete }) {
   return (
     <motion.div
       className="fixed inset-0 overflow-hidden flex flex-col items-center justify-center p-4 bg-cover bg-center bg-no-repeat"
-      style={{ backgroundImage: "url('/gameBackground.jpg')" }}
+      style={{ backgroundImage: `url(${import.meta.env.BASE_URL}gameBackground.jpg)` }}
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.95 }}
