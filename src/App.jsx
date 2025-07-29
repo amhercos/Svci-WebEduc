@@ -10,6 +10,7 @@ import AnimalSoundGame from './components/AnimalSoundGame';
 import GameIntro from './components/GameIntro';
 import OddColorGame from './components/OddColorGame';
 import PokemonGame from './components/PokemonGame';
+import AnimalGuessingGame from './components/AnimalGuessingGame';
 
 function App() {
   const [currentWord, setCurrentWord] = useState('');
@@ -21,9 +22,10 @@ function App() {
   const [selectedGame, setSelectedGame] = useState(null);
 
   const miniGames = [
-    // { title: 'Find the Odd Color', component: OddColorGame },
+    { title: 'Find the Odd Color', component: OddColorGame },
     // { title: 'Animal Sound Game', component: AnimalSoundGame },
     { title: 'You Caught a Pokemon!', component: PokemonGame },
+    { title: 'What\'s the Animal?', component: AnimalGuessingGame },
   ];
 
   const handleWordSubmit = (e) => {
