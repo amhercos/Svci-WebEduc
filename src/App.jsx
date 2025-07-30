@@ -11,6 +11,7 @@ import GameIntro from './components/GameIntro';
 import OddColorGame from './components/OddColorGame';
 import PokemonGame from './components/PokemonGame';
 import AnimalGuessingGame from './components/AnimalGuessingGame';
+import CupAndBallGame from './components/CupAndBallGame';
 
 function App() {
   const [currentWord, setCurrentWord] = useState('');
@@ -22,10 +23,10 @@ function App() {
   const [selectedGame, setSelectedGame] = useState(null);
 
   const miniGames = [
-    { title: 'Find the Odd Color', component: OddColorGame },
-    // { title: 'Animal Sound Game', component: AnimalSoundGame },
-    { title: 'You Caught a Pokemon!', component: PokemonGame },
-    { title: 'What\'s the Animal?', component: AnimalGuessingGame },
+    // { title: 'Find the Odd Color', component: OddColorGame },
+    // { title: 'You Caught a Pokemon!', component: PokemonGame },
+    { title: "What's the Animal?", component: AnimalGuessingGame },
+    // { title: 'Cup and Ball Shuffle', component: CupAndBallGame },
   ];
 
   const handleWordSubmit = (e) => {
@@ -43,11 +44,26 @@ function App() {
   };
 
   const handleChestClick = () => {
-    const options = ['game', 'chocolate', 'sticker'];
-    // if (Math.random() < 0.5) {
-    //   options.push('game'); 
-    // }
-    const result = options[Math.floor(Math.random() * options.length)];
+    const weightedOptions = [
+      { value: 'game', weight: 70 },
+      { value: 'chocolate', weight: 15 },
+      { value: 'sticker', weight: 15 },
+    ];
+
+    const totalWeight = weightedOptions.reduce((sum, option) => sum + option.weight, 0);
+    const random = Math.random() * totalWeight;
+
+    let cumulative = 0;
+    let result = weightedOptions[0].value;
+
+    for (const option of weightedOptions) {
+      cumulative += option.weight;
+      if (random < cumulative) {
+        result = option.value;
+        break;
+      }
+    }
+
     setChestResult(result);
 
     if (result === 'game') {
@@ -138,7 +154,6 @@ function App() {
                   numberOfPieces={350}
                   recycle={false}
                 />
-
                 <motion.div
                   initial={{ scale: 0.6, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}

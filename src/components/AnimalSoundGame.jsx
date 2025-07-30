@@ -27,7 +27,7 @@ function AnimalSoundGame({ onComplete }) {
     const shuffledOptions = animals.sort(() => 0.5 - Math.random()).slice(0, 3);
 
     if (!shuffledOptions.includes(randomAnimal)) {
-      shuffledOptions[Math.floor(Math.random() * 3)] = randomAnimal;
+      shuffledOptions[Math.floor(Math.random() * 1)] = randomAnimal;
     }
 
     setQuestionAnimal(randomAnimal);

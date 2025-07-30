@@ -58,7 +58,7 @@ function WordDisplay({ word }) {
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: [0.8, 1.1, 1], opacity: 1 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
-          className="text-center font-extrabold text-[#489bcb] uppercase drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]"
+          className="text-center font-extrabold text-[#489bcb] drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]"
           style={{
             fontSize: adjustedFontSize,
             lineHeight: adjustedLineHeight,
