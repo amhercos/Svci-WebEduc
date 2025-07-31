@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import { useSpeechSynthesis } from 'react-speech-kit';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Confetti from 'react-confetti';
 import { useWindowSize } from '@react-hook/window-size';
@@ -36,7 +35,6 @@ const generateLevels = (count) => {
 };
 
 const AnimalGuessingGame = ({ onComplete }) => {
-  const { speak, speaking, cancel, voices } = useSpeechSynthesis();
   const [width, height] = useWindowSize();
 
   const [levels, setLevels] = useState([]);
@@ -45,12 +43,37 @@ const AnimalGuessingGame = ({ onComplete }) => {
   const [showFeedback, setShowFeedback] = useState(null);
   const [isCorrect, setIsCorrect] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [selectedVoice, setSelectedVoice] = useState(null);
 
   useEffect(() => {
-    if (voices.length > 0) {
-      setLevels(generateLevels(3));
-    }
-  }, [voices]);
+    const loadVoices = () => {
+      const allVoices = speechSynthesis.getVoices();
+      const bestVoice = allVoices.find(
+        (v) =>
+          v.lang.toLowerCase().includes('en-us') &&
+          v.name.toLowerCase().includes('female')
+      ) || allVoices.find(v => v.lang.toLowerCase().includes('en-us'));
+
+      setSelectedVoice(bestVoice);
+
+      if (!levels.length) {
+        setLevels(generateLevels(3));
+      }
+    };
+
+    loadVoices();
+    speechSynthesis.onvoiceschanged = loadVoices;
+  }, []);
+
+  const speak = (text) => {
+    if (speechSynthesis.speaking) speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    if (selectedVoice) utterance.voice = selectedVoice;
+    utterance.rate = 0.9;
+    utterance.pitch = 1;
+    utterance.volume = 1;
+    speechSynthesis.speak(utterance);
+  };
 
   const handleOptionClick = (option) => {
     setSelected(option);
@@ -59,7 +82,7 @@ const AnimalGuessingGame = ({ onComplete }) => {
     setShowFeedback(correct ? 'Correct!' : 'Oops!');
 
     setTimeout(() => {
-      cancel();
+      speechSynthesis.cancel();
       setShowFeedback(null);
       setSelected(null);
       if (correct) {
@@ -69,26 +92,10 @@ const AnimalGuessingGame = ({ onComplete }) => {
           setShowConfetti(true);
           setTimeout(() => {
             onComplete();
-          }, 4000); // Delay for confetti animation
+          }, 4000);
         }
       }
     }, 1500);
-  };
-
-  const handleSpeak = () => {
-    const current = levels[currentLevel];
-    if (!speaking && voices.length > 0) {
-      const selectedVoice = voices.find((v) =>
-        v.lang.toLowerCase().includes('en')
-      );
-      speak({
-        text: current.correctAnswer,
-        voice: selectedVoice,
-        rate: 0.9,
-        pitch: 1,
-        volume: 1
-      });
-    }
   };
 
   if (!levels.length) return <div className="text-white">Loading...</div>;
@@ -102,40 +109,41 @@ const AnimalGuessingGame = ({ onComplete }) => {
       exit={{ opacity: 0, scale: 0.95 }}
       transition={{ duration: 0.4 }}
     >
-      <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white drop-shadow-lg">
+      <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white drop-shadow-lg mb-4">
         What animal is this?
       </h1>
 
       <img
         src={`${baseUrl}${current.image}`}
         alt="Animal"
-        className="w-[400px] h-[400px] object-contain mb-2 drop-shadow-xl"
+        className="w-[500px] h-[500px] object-contain mb-6 drop-shadow-xl"
       />
-
-      <button
-        onClick={handleSpeak}
-        className="bg-yellow-400 hover:bg-yellow-500 text-black px-4 py-2 rounded-lg font-bold mb-4 shadow-lg"
-      >
-        🔊 Listen
-      </button>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full max-w-2xl">
         {current.options.map((option, index) => (
-          <button
-            key={index}
-            onClick={() => handleOptionClick(option)}
-            className={`px-6 py-4 rounded-xl font-bold text-xl shadow-md transition-transform duration-200
-              ${
-                selected === option
-                  ? isCorrect
-                    ? 'bg-green-400 scale-105'
-                    : 'bg-red-400 scale-105'
-                  : 'bg-white text-black hover:bg-blue-100 hover:scale-105'
-              }`}
-            disabled={!!showFeedback}
-          >
-            {option}
-          </button>
+          <div key={index} className="relative flex flex-col items-center">
+            <button
+              onClick={() => handleOptionClick(option)}
+              className={`px-6 py-4 rounded-xl font-bold text-xl shadow-md transition-transform duration-200 w-full
+                ${
+                  selected === option
+                    ? isCorrect
+                      ? 'bg-green-400 scale-105'
+                      : 'bg-red-400 scale-105'
+                    : 'bg-white text-black hover:bg-blue-100 hover:scale-105'
+                }`}
+              disabled={!!showFeedback}
+            >
+              {option}
+            </button>
+            <button
+              onClick={() => speak(option)}
+              className="absolute top-[-10px] right-[-10px] bg-yellow-300 hover:bg-yellow-500 text-black rounded-full p-2 shadow-md text-sm"
+              aria-label={`Speak ${option}`}
+            >
+              🔊
+            </button>
+          </div>
         ))}
       </div>
 
