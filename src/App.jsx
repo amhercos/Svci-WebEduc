@@ -45,9 +45,9 @@ function App() {
 
   const handleChestClick = () => {
     const weightedOptions = [
-      { value: 'game', weight: 70 },
-      { value: 'chocolate', weight: 15 },
-      { value: 'sticker', weight: 15 },
+      { value: 'game', weight: 60 },
+      { value: 'chocolate', weight: 20 },
+      { value: 'sticker', weight: 20 },
     ];
 
     const totalWeight = weightedOptions.reduce((sum, option) => sum + option.weight, 0);
