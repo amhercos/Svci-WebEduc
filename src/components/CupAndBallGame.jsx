@@ -1,191 +1,251 @@
-import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import Confetti from "react-confetti";
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import Confetti from 'react-confetti';
+import { useWindowSize } from '@react-hook/window-size';
 
-const baseUrl = import.meta.env.BASE_URL;
-const cupImg = `${baseUrl}cup.png`;
-const ballImg = `${baseUrl}ball.png`;
+// --- Helper Functions and Constants ---
+
+const TOTAL_CUPS = 3;
+const SHUFFLE_COUNT = 3; 
+const baseUrl = import.meta.env.BASE_URL || '/';
+
+// Color palette for the cups. Each object defines a top and bottom gradient color.
+const colorPalettes = [
+  { top: '#3B82F6', bottom: '#2563EB' }, // Blue
+  { top: '#EC4899', bottom: '#DB2777' }, // Pink
+  { top: '#10B981', bottom: '#059669' }, // Green
+  { top: '#8B5CF6', bottom: '#7C3AED' }, // Purple
+  { top: '#F97316', bottom: '#EA580C' }, // Orange
+];
+
+// A simple function to create a delay using async/await
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+// Creates the initial state for the cups, placing the ball randomly
+const createInitialCups = () => {
+  const ballPosition = Math.floor(Math.random() * TOTAL_CUPS);
+  return Array.from({ length: TOTAL_CUPS }, (_, i) => ({
+    id: i + 1,
+    order: i, // Represents the visual position (0, 1, 2)
+    hasBall: i === ballPosition,
+    isLifted: false,
+    y: 0, // For vertical movement during shuffle
+    zIndex: 0, // To ensure moving cups are on top
+  }));
+};
+
+
+// --- SVG Components for Game Assets ---
+
+// The CupIcon now accepts a 'color' prop to dynamically set its gradient.
+const CupIcon = ({ isLifted, color, ...props }) => (
+  <motion.div
+    {...props}
+    className="relative drop-shadow-lg cursor-pointer"
+    initial={{ y: 0 }}
+    animate={{ y: isLifted ? -60 : 0 }} // Lifts the cup up for reveal
+    transition={{ type: 'spring', stiffness: 200, damping: 20 }}
+  >
+    <svg width="250" height="200" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M20 110H100L110 50H10V50L20 110Z" fill="url(#paint0_linear_101_2)"/>
+      <path d="M10 50H110V40C110 28.9543 101.046 20 90 20H30C18.9543 20 10 28.9543 10 40V50Z" fill={color.bottom}/>
+      <circle cx="60" cy="20" r="15" fill={color.bottom}/>
+      <defs>
+        <linearGradient id="paint0_linear_101_2" x1="60" y1="20" x2="60" y2="110" gradientUnits="userSpaceOnUse">
+          <stop stopColor={color.top}/>
+          <stop offset="1" stopColor={color.bottom}/>
+        </linearGradient>
+      </defs>
+    </svg>
+  </motion.div>
+);
+
+const BallIcon = (props) => (
+  <motion.div {...props} className="absolute bottom-[-10px] z-0">
+     <svg width="60" height="60" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="50" cy="50" r="50" fill="url(#paint0_radial_101_3)"/>
+        <defs>
+            <radialGradient id="paint0_radial_101_3" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(65 35) rotate(90) scale(45)">
+                <stop stopColor="#F87171"/>
+                <stop offset="1" stopColor="#DC2626"/>
+            </radialGradient>
+        </defs>
+    </svg>
+  </motion.div>
+);
+
+
+// --- Main Game Component ---
 
 const CupAndBallGame = ({ onComplete }) => {
-  const [positions, setPositions] = useState(["left", "center", "right"]);
-  const [ballPosition, setBallPosition] = useState("center");
-  const [selectedCup, setSelectedCup] = useState(null);
-  const [round, setRound] = useState(1);
-  const [showAllCups, setShowAllCups] = useState(false);
+  const [width, height] = useWindowSize();
+  const [cups, setCups] = useState(createInitialCups);
+  const [gamePhase, setGamePhase] = useState('start'); // 'start', 'covering', 'shuffling', 'choosing', 'revealed'
+  const [message, setMessage] = useState('Follow the ball!');
   const [showConfetti, setShowConfetti] = useState(false);
-  const [feedback, setFeedback] = useState(null);
-  const [gameFinished, setGameFinished] = useState(false);
-  const [shuffling, setShuffling] = useState(false);
+  // State to hold the current color of the cups for this game round.
+  const [cupColor, setCupColor] = useState(colorPalettes[0]);
 
-  const maxRounds = 3;
-
-  const positionMap = {
-    left: "justify-start",
-    center: "justify-center",
-    right: "justify-end",
-  };
-
-  const shufflePositions = () => {
-    const newPositions = [...positions];
-    for (let i = newPositions.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [newPositions[i], newPositions[j]] = [newPositions[j], newPositions[i]];
-    }
-    return newPositions;
-  };
-
-  const startShuffle = () => {
-    setShuffling(true);
-    let iterations = 5 + round * 2;
-    let delay = 150 - round * 20;
-
-    const shuffle = (count) => {
-      if (count <= 0) {
-        setShuffling(false);
-        return;
-      }
-      setPositions(shufflePositions());
-      setTimeout(() => shuffle(count - 1), delay);
-    };
-
-    shuffle(iterations);
-  };
-
-  const handleCupClick = (position) => {
-    if (shuffling || selectedCup !== null) return;
-
-    setSelectedCup(position);
-    setShowAllCups(true);
-
-    const isCorrect = position === ballPosition;
-    setFeedback(isCorrect ? "correct" : "incorrect");
-
-    if (isCorrect) {
-      if (round === maxRounds) {
-        setShowConfetti(true);
-        setTimeout(() => {
-          setGameFinished(true);
-          onComplete();
-        }, 3000);
-      } else {
-        setTimeout(() => {
-          setFeedback(null);
-          setSelectedCup(null);
-          setShowAllCups(false);
-          setRound((prev) => prev + 1);
-          const newBallPosition = ["left", "center", "right"][
-            Math.floor(Math.random() * 3)
-          ];
-          setBallPosition(newBallPosition);
-          startShuffle();
-        }, 2000);
-      }
-    } else {
-      // retry same round
-      setTimeout(() => {
-        setFeedback(null);
-        setSelectedCup(null);
-        setShowAllCups(false);
-        startShuffle();
-      }, 2000);
-    }
-  };
-
+  // Set a random color when the component first loads.
   useEffect(() => {
-    startShuffle();
+    setCupColor(colorPalettes[Math.floor(Math.random() * colorPalettes.length)]);
   }, []);
 
-  const renderCup = (positionKey) => {
-    const isSelected = selectedCup === positionKey;
-    const hasBall = ballPosition === positionKey;
+  // Resets the game to its initial state and picks a new random color.
+  const resetGame = () => {
+    setCupColor(colorPalettes[Math.floor(Math.random() * colorPalettes.length)]);
+    setCups(createInitialCups());
+    setGamePhase('start');
+    setMessage('Follow the ball!');
+    setShowConfetti(false);
+  };
 
-    return (
-      <div
-        key={positionKey}
-        className={`flex flex-col items-center ${
-          positionMap[positionKey]
-        } w-1/3 transition-transform duration-500`}
-      >
-        <div
-          className="cursor-pointer relative"
-          onClick={() => handleCupClick(positionKey)}
-        >
-          <motion.img
-            src={cupImg}
-            alt="Cup"
-            initial={{ y: 0 }}
-            animate={{
-              y:
-                showAllCups && hasBall
-                  ? -50
-                  : showAllCups && !hasBall
-                  ? -30
-                  : 0,
-            }}
-            transition={{ duration: 0.3 }}
-            className="w-24 md:w-32"
-          />
-          {showAllCups && hasBall && (
-            <img
-              src={ballImg}
-              alt="Ball"
-              className="absolute top-full left-1/2 -translate-x-1/2 w-10 md:w-12 mt-2"
-            />
-          )}
-        </div>
-      </div>
-    );
+  // The main shuffle logic, with a visible arc motion
+  const handleShuffle = async () => {
+    setGamePhase('covering');
+    setMessage('Watch carefully...');
+    await sleep(1500);
+
+    setGamePhase('shuffling');
+    setMessage('Shuffling...');
+    await sleep(500);
+
+    let lastSwap = [-1, -1];
+
+    for (let i = 0; i < SHUFFLE_COUNT; i++) {
+      let pos1 = Math.floor(Math.random() * TOTAL_CUPS);
+      let pos2 = Math.floor(Math.random() * TOTAL_CUPS);
+
+      while (pos1 === pos2 || (pos1 === lastSwap[0] && pos2 === lastSwap[1]) || (pos1 === lastSwap[1] && pos2 === lastSwap[0])) {
+        pos1 = Math.floor(Math.random() * TOTAL_CUPS);
+        pos2 = Math.floor(Math.random() * TOTAL_CUPS);
+      }
+      lastSwap = [pos1, pos2];
+
+      // Step 1: Lift the two cups that will be swapped
+      setCups(prev => prev.map(c => (c.order === pos1 || c.order === pos2) ? { ...c, zIndex: 1, y: -70 } : c ));
+      await sleep(1000);
+
+      // Step 2: Swap their order property, triggering the layout animation
+      setCups(prev => {
+        const cup1 = prev.find(c => c.order === pos1);
+        const cup2 = prev.find(c => c.order === pos2);
+        return prev.map(c => {
+          if (c.id === cup1.id) return { ...c, order: pos2 };
+          if (c.id === cup2.id) return { ...c, order: pos1 };
+          return c;
+        });
+      });
+      await sleep(1000); // Wait for horizontal swap to complete
+
+      // Step 3: Lower the cups back to their positions
+      setCups(prev => prev.map(c => ({ ...c, zIndex: 0, y: 0 })));
+      await sleep(1000);
+    }
+
+    setGamePhase('choosing');
+    setMessage('Where is the ball?');
+  };
+
+  // Handles the user's choice
+  const handleCupClick = (clickedCup) => {
+    if (gamePhase !== 'choosing') return;
+
+    setGamePhase('revealed');
+    
+    // Create a new state where the clicked cup is lifted
+    setCups(cups.map(cup => ({...cup, isLifted: cup.id === clickedCup.id })));
+
+    if (clickedCup.hasBall) {
+      setMessage('You found it! 🎉');
+      setShowConfetti(true);
+      setTimeout(() => {
+        onComplete();
+      }, 4000);
+    } else {
+      setMessage('Not this one... Try Again!');
+      // After a short delay, also lift the correct cup to show the user
+      setTimeout(() => {
+         setCups(prevCups => prevCups.map(cup => ({...cup, isLifted: cup.isLifted || cup.hasBall })));
+      }, 700);
+    }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-yellow-100 to-yellow-300 flex items-center justify-center relative">
-      {showConfetti && <Confetti width={windowWidth} height={windowHeight} />}
+    <motion.div
+      className="fixed inset-0 bg-cover bg-center flex flex-col items-center justify-center p-4"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      style={{ backgroundImage: `url(${baseUrl}gameBackground.jpg)` }}
+    >
+      {showConfetti && <Confetti width={width} height={height} recycle={false} numberOfPieces={500} />}
 
-      <div className="text-center absolute top-6 left-1/2 transform -translate-x-1/2">
-        <h2 className="text-2xl md:text-3xl font-bold text-orange-700">
-          Round {round} of {maxRounds}
-        </h2>
-      </div>
-
-      <div className="flex justify-between items-end w-full max-w-3xl px-8">
-        {positions.map((position) => renderCup(position))}
-      </div>
-
-      <AnimatePresence>
-        {feedback && (
+      <h1 className="text-4xl sm:text-5xl font-extrabold text-black drop-shadow-lg mb-8 text-center">
+        {message}
+      </h1>
+      
+      <div className="relative flex justify-center items-center h-64 w-full max-w-2xl mt-25">
+        {cups.map((cup) => (
           <motion.div
-            key="feedback"
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 30 }}
-            className={`absolute bottom-32 text-2xl md:text-3xl font-bold px-6 py-4 rounded-xl ${
-              feedback === "correct"
-                ? "bg-green-500 text-white"
-                : "bg-red-500 text-white"
-            }`}
+            key={cup.id}
+            className="absolute"
+            layout // This prop is essential for animating layout changes
+            transition={{ type: 'spring', stiffness: 300, damping: 40 }}
+            animate={{
+              // Increased multiplier for more space between cups
+              x: (cup.order - 1) * 350, 
+              y: cup.y, // Vertical position for the arc motion
+              zIndex: cup.zIndex, // Layering for moving cups
+            }}
+            onClick={() => handleCupClick(cup)}
           >
-            {feedback === "correct" ? "Correct! 🎉" : "Wrong Cup! Try Again 🔁"}
+            <div className="relative flex flex-col items-center">
+              <CupIcon
+                isLifted={
+                  (gamePhase === 'start' && cup.hasBall) || 
+                  (gamePhase === 'revealed' && cup.isLifted)
+                }
+                color={cupColor} // Pass the current color state to the icon
+              />
+              {(gamePhase === 'start' || gamePhase === 'revealed') && cup.hasBall && (
+                <BallIcon />
+              )}
+            </div>
           </motion.div>
-        )}
-      </AnimatePresence>
+        ))}
+      </div>
 
-      {gameFinished && (
-        <div className="absolute inset-0 bg-white/80 flex flex-col items-center justify-center text-center p-4 z-30">
-          <h2 className="text-4xl font-bold text-green-700 mb-4">
-            Great job! 🎉
-          </h2>
-          <p className="text-lg text-gray-700">
-            You finished all 3 rounds of the Cup and Ball game!
-          </p>
-          <button
-            onClick={onComplete}
-            className="mt-6 px-6 py-3 bg-green-500 text-white font-semibold rounded-xl shadow-lg hover:bg-green-600 transition"
-          >
-            Continue
-          </button>
-        </div>
-      )}
-    </div>
+      <div className="mt-20 h-16">
+        <AnimatePresence mode="wait">
+          {gamePhase === 'start' && (
+            <motion.button
+              key="start-btn"
+              onClick={handleShuffle}
+              className="px-8 py-4 bg-yellow-400 text-amber-800 font-bold text-xl rounded-xl shadow-lg hover:bg-yellow-500 transition-transform transform hover:scale-105"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+            >
+              Start Shuffling
+            </motion.button>
+          )}
+
+          {gamePhase === 'revealed' && !showConfetti && (
+             <motion.button
+              key="play-again-btn"
+              onClick={resetGame}
+              className="px-8 py-4 bg-white text-sky-800 font-bold text-xl rounded-xl shadow-lg hover:bg-gray-100 transition-transform transform hover:scale-105"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+            >
+              Play Again
+            </motion.button>
+          )}
+        </AnimatePresence>
+      </div>
+    </motion.div>
   );
 };
 

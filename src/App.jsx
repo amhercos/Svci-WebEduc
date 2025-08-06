@@ -1,17 +1,17 @@
-// src/App.jsx
 import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import Confetti from 'react-confetti';
+import { Analytics } from '@vercel/analytics/react';
 
 import WordInput from './components/WordInput';
 import WordDisplay from './components/WordDisplay';
 import ChestSelection from './components/ChestSelection';
-import AnimalSoundGame from './components/AnimalSoundGame';
 import GameIntro from './components/GameIntro';
 import OddColorGame from './components/OddColorGame';
 import PokemonGame from './components/PokemonGame';
 import AnimalGuessingGame from './components/AnimalGuessingGame';
 import CupAndBallGame from './components/CupAndBallGame';
+import BubbleShooterGame from './components/BubbleShooterGame';
 
 function App() {
   const [currentWord, setCurrentWord] = useState('');
@@ -21,12 +21,15 @@ function App() {
   const [hasReadWord, setHasReadWord] = useState(false);
   const [showGameIntro, setShowGameIntro] = useState(false);
   const [selectedGame, setSelectedGame] = useState(null);
+  // State to keep track of the last game played
+  const [lastPlayedGame, setLastPlayedGame] = useState(null);
 
   const miniGames = [
     { title: 'Find the Odd Color', component: OddColorGame },
     { title: 'You Caught a Pokemon!', component: PokemonGame },
     { title: "What's the Animal?", component: AnimalGuessingGame },
-    // { title: 'Cup and Ball Shuffle', component: CupAndBallGame },
+    { title: 'Cup and Ball Shuffle', component: CupAndBallGame },
+    { title: 'Bubble Shooter', component: BubbleShooterGame }
   ];
 
   const handleWordSubmit = (e) => {
@@ -67,8 +70,21 @@ function App() {
     setChestResult(result);
 
     if (result === 'game') {
-      const randomGame = miniGames[Math.floor(Math.random() * miniGames.length)];
+      // Filter out the last game played to avoid immediate repeats.
+      const availableGames = miniGames.filter(
+        (game) => game.title !== lastPlayedGame
+      );
+      
+      // If the filtered list is empty (meaning all games have been played once),
+      // use the full list. Otherwise, use the filtered list.
+      const gamePool = availableGames.length > 0 ? availableGames : miniGames;
+      
+      // Select a random game from the appropriate pool.
+      const randomGame = gamePool[Math.floor(Math.random() * gamePool.length)];
+      
       setSelectedGame(randomGame);
+      // Update the state to remember the game that was just chosen.
+      setLastPlayedGame(randomGame.title); 
       setShowGameIntro(true);
     }
   };
@@ -90,6 +106,7 @@ function App() {
     setShowGameIntro(false);
     setSelectedGame(null);
     setGameComplete(false);
+    // Note: We don't reset lastPlayedGame here so it persists across words.
   };
 
   const fadeTransition = {
@@ -197,7 +214,9 @@ function App() {
           </>
         )}
       </AnimatePresence>
+      <Analytics />
     </div>
+    
   );
 }
 

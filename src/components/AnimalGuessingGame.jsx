@@ -57,7 +57,7 @@ const AnimalGuessingGame = ({ onComplete }) => {
       setSelectedVoice(bestVoice);
 
       if (!levels.length) {
-        setLevels(generateLevels(3));
+        setLevels(generateLevels(1));
       }
     };
 
