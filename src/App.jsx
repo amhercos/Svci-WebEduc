@@ -12,6 +12,7 @@ import PokemonGame from './components/PokemonGame';
 import AnimalGuessingGame from './components/AnimalGuessingGame';
 import CupAndBallGame from './components/CupAndBallGame';
 import BubbleShooterGame from './components/BubbleShooterGame';
+import ShapeMatchGame from './components/ShapeMatchGame';
 
 function App() {
   const [currentWord, setCurrentWord] = useState('');
@@ -29,7 +30,8 @@ function App() {
     { title: 'You Caught a Pokemon!', component: PokemonGame },
     { title: "What's the Animal?", component: AnimalGuessingGame },
     { title: 'Cup and Ball Shuffle', component: CupAndBallGame },
-    { title: 'Bubble Shooter', component: BubbleShooterGame }
+    { title: 'Bubble Shooter', component: BubbleShooterGame },
+    { title: 'Shape Match', component: ShapeMatchGame },
   ];
 
   const handleWordSubmit = (e) => {
