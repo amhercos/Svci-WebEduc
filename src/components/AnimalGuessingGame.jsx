@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Confetti from 'react-confetti';
 import { useWindowSize } from '@react-hook/window-size';
@@ -34,6 +34,15 @@ const generateLevels = (count) => {
   });
 };
 
+// Define an array of sound effect paths for game completion
+const WIN_SOUNDS = [
+  'win.mp3',
+  'win2.mp3',
+  'win3.mp3',
+  'win4.mp3',
+  'tada.mp3',
+];
+
 const AnimalGuessingGame = ({ onComplete }) => {
   const [width, height] = useWindowSize();
 
@@ -44,6 +53,14 @@ const AnimalGuessingGame = ({ onComplete }) => {
   const [isCorrect, setIsCorrect] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const [selectedVoice, setSelectedVoice] = useState(null);
+
+  // Function to play a random winning sound
+  const playWinSound = useCallback(() => {
+    const randomIndex = Math.floor(Math.random() * WIN_SOUNDS.length);
+    const soundPath = `${baseUrl}${WIN_SOUNDS[randomIndex]}`;
+    const audio = new Audio(soundPath);
+    audio.play().catch(error => console.error("Error playing win sound:", error));
+  }, [baseUrl]);
 
   useEffect(() => {
     const loadVoices = () => {
@@ -90,6 +107,7 @@ const AnimalGuessingGame = ({ onComplete }) => {
           setCurrentLevel((prev) => prev + 1);
         } else {
           setShowConfetti(true);
+          playWinSound(); // Play a random win sound here! 🎉
           setTimeout(() => {
             onComplete();
           }, 4000);

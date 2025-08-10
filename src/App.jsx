@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react'; // Import useEffect and useCallback
 import { AnimatePresence, motion } from 'framer-motion';
 import Confetti from 'react-confetti';
 import { Analytics } from '@vercel/analytics/react';
@@ -13,6 +13,16 @@ import AnimalGuessingGame from './components/AnimalGuessingGame';
 import CupAndBallGame from './components/CupAndBallGame';
 import BubbleShooterGame from './components/BubbleShooterGame';
 import ShapeMatchGame from './components/ShapeMatchGame';
+import CatchTheItemsGame from './components/CatchTheItemsGame';
+
+// Define an array of sound effect paths for game completion
+const WIN_SOUNDS = [
+  'win.mp3',
+  'win2.mp3',
+  'win3.mp3',
+  'win4.mp3',
+  'tada.mp3',
+];
 
 function App() {
   const [currentWord, setCurrentWord] = useState('');
@@ -25,6 +35,16 @@ function App() {
   // State to keep track of the last game played
   const [lastPlayedGame, setLastPlayedGame] = useState(null);
 
+  const baseUrl = import.meta.env.BASE_URL; // Get baseUrl
+
+  // Function to play a random winning sound
+  const playWinSound = useCallback(() => {
+    const randomIndex = Math.floor(Math.random() * WIN_SOUNDS.length);
+    const soundPath = `${baseUrl}${WIN_SOUNDS[randomIndex]}`;
+    const audio = new Audio(soundPath);
+    audio.play().catch(error => console.error("Error playing win sound:", error));
+  }, [baseUrl]);
+
   const miniGames = [
     { title: 'Find the Odd Color', component: OddColorGame },
     { title: 'You Caught a Pokemon!', component: PokemonGame },
@@ -32,6 +52,7 @@ function App() {
     { title: 'Cup and Ball Shuffle', component: CupAndBallGame },
     { title: 'Bubble Shooter', component: BubbleShooterGame },
     { title: 'Shape Match', component: ShapeMatchGame },
+    { title: 'Catch the Items', component: CatchTheItemsGame }
   ];
 
   const handleWordSubmit = (e) => {
@@ -88,6 +109,9 @@ function App() {
       // Update the state to remember the game that was just chosen.
       setLastPlayedGame(randomGame.title); 
       setShowGameIntro(true);
+    } else {
+      // Play win sound for chocolate or sticker rewards
+      playWinSound();
     }
   };
 

@@ -62,6 +62,20 @@ const shuffleArray = (array) => {
 // Define total levels as a constant for easy editing
 const TOTAL_LEVELS = 4; // You can change this value to set the number of game levels
 
+// Define an array of sound effect paths for game completion
+const WIN_SOUNDS = [
+  'win.mp3',
+  'win2.mp3',
+  'win3.mp3',
+  'win4.mp3',
+  'tada.mp3',
+];
+
+// Define paths for correct and wrong answer sounds
+const CORRECT_SOUND = 'correct.mp3';
+const WRONG_SOUND = 'wrong.mp3';
+
+
 // Main App component for the game
 function App({ onComplete }) {
   const baseUrl = import.meta.env.BASE_URL;
@@ -70,10 +84,30 @@ function App({ onComplete }) {
   const [targetShape, setTargetShape] = useState(null);
   const [shapeChoices, setShapeChoices] = useState([]);
   const [feedback, setFeedback] = useState(null); // 'correct', 'incorrect', or null
-  // Removed score state: const [score, setScore] = useState(0);
   const [round, setRound] = useState(0);
   const [gameComplete, setGameComplete] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
+
+  // Function to play a random winning sound
+  const playWinSound = useCallback(() => {
+    const randomIndex = Math.floor(Math.random() * WIN_SOUNDS.length);
+    const soundPath = `${baseUrl}${WIN_SOUNDS[randomIndex]}`;
+    const audio = new Audio(soundPath);
+    audio.play().catch(error => console.error("Error playing sound:", error));
+  }, [baseUrl]);
+
+  // Function to play correct answer sound
+  const playCorrectSound = useCallback(() => {
+    const audio = new Audio(`${baseUrl}${CORRECT_SOUND}`);
+    audio.play().catch(error => console.error("Error playing correct sound:", error));
+  }, [baseUrl]);
+
+  // Function to play wrong answer sound
+  const playWrongSound = useCallback(() => {
+    const audio = new Audio(`${baseUrl}${WRONG_SOUND}`);
+    audio.play().catch(error => console.error("Error playing wrong sound:", error));
+  }, [baseUrl]);
+
 
   // Function to advance to the next round or complete the game
   const advanceRound = useCallback(() => {
@@ -114,12 +148,13 @@ function App({ onComplete }) {
   useEffect(() => {
     if (gameComplete) {
       setShowConfetti(true);
+      playWinSound(); // Play a random win sound here! 🎉
       setTimeout(() => {
         setShowConfetti(false);
         onComplete?.(); // Call onComplete prop if provided
       }, 6000); // Confetti duration
     }
-  }, [gameComplete, onComplete]);
+  }, [gameComplete, onComplete, playWinSound]); // Add playWinSound to dependencies
 
   // Handler for when a shape choice is clicked
   const handleShapeClick = (clickedShape) => {
@@ -127,12 +162,13 @@ function App({ onComplete }) {
 
     if (clickedShape.id === targetShape.id) { // Compare by unique ID for generated shapes
       setFeedback('correct');
-      // Removed score increment: setScore(prevScore => prevScore + 1);
+      playCorrectSound(); // Play correct sound!
       setTimeout(() => {
         advanceRound(); // Advance to next round
       }, 1000);
     } else {
       setFeedback('incorrect');
+      playWrongSound(); // Play wrong sound!
       // No automatic advance, allow user to retry
       setTimeout(() => {
         setFeedback(null); // Clear feedback to allow another try
@@ -143,7 +179,6 @@ function App({ onComplete }) {
   // The restartGame function is no longer called from the completion screen
   // It's kept here in case you want to manually trigger a restart from elsewhere
   const restartGame = () => {
-    // Removed score reset: setScore(0);
     setRound(0); // Reset round to 0
     setGameComplete(false); // Reset game completion status
     setFeedback(null);
@@ -176,7 +211,6 @@ function App({ onComplete }) {
 
       {!gameComplete ? (
         <>
-          
 
           <div className="mb-12">
             <p className="text-3xl text-gray-800 mb-6 font-bold">
@@ -185,8 +219,8 @@ function App({ onComplete }) {
             {targetShape && (
               <motion.div
                 key={targetShape.id} // Key for animation on shape change
-                className="w-48 h-48 rounded-full mx-auto shadow-2xl border-4 border-gray-400 flex items-center justify-center transform transition-transform duration-300 hover:scale-105 bg-white/70 backdrop-blur-sm"
-                dangerouslySetInnerHTML={{ __html: `<svg viewBox="0 0 100 100" class="w-36 h-36">${targetShape.svg}</svg>` }}
+                className="w-64 h-64 rounded-full mx-auto shadow-2xl border-4 border-gray-400 flex items-center justify-center transform transition-transform duration-300 hover:scale-105 bg-white/70 backdrop-blur-sm" // Increased size
+                dangerouslySetInnerHTML={{ __html: `<svg viewBox="0 0 100 100" class="w-48 h-48">${targetShape.svg}</svg>` }} // Increased inner SVG size
                 initial={{ scale: 0.8, rotate: -10 }}
                 animate={{ scale: 1, rotate: 0 }}
                 transition={{ type: 'spring', stiffness: 200, damping: 15 }}
@@ -194,11 +228,11 @@ function App({ onComplete }) {
             )}
           </div>
 
-          <div className="flex flex-wrap justify-center gap-4 sm:gap-6 mb-12 max-w-full"> {/* Changed to flex for horizontal layout */}
+          <div className="flex flex-wrap justify-center gap-4 sm:gap-6 mb-12 max-w-full">
             {shapeChoices.map((shape, index) => (
               <motion.button
                 key={shape.id} // Use shape.id as key
-                className={`w-32 h-32 rounded-2xl shadow-xl transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-opacity-75 flex items-center justify-center bg-white/80 backdrop-blur-sm
+                className={`w-48 h-48 rounded-2xl shadow-xl transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-opacity-75 flex items-center justify-center bg-white/80 backdrop-blur-sm
                   ${feedback === 'correct' && shape.id === targetShape.id ? 'ring-green-500 ring-8' : ''}
                   ${feedback === 'incorrect' && shape.id !== targetShape.id ? 'ring-red-500 ring-8' : ''}
                   ${feedback === 'incorrect' && shape.id === targetShape.id ? 'ring-yellow-500 ring-8 animate-pulse' : ''}
@@ -210,7 +244,7 @@ function App({ onComplete }) {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1, duration: 0.4, type: 'spring', stiffness: 150 }}
               >
-                <svg viewBox="0 0 100 100" className="w-24 h-24" dangerouslySetInnerHTML={{ __html: shape.svg }}></svg> {/* Adjusted SVG size */}
+                <svg viewBox="0 0 100 100" className="w-36 h-36" dangerouslySetInnerHTML={{ __html: shape.svg }}></svg> {/* Increased inner SVG size */}
               </motion.button>
             ))}
           </div>
@@ -262,9 +296,8 @@ function App({ onComplete }) {
             🌟 Congratulations! 🌟
           </h2>
           <p className="text-3xl text-gray-800 mb-8">
-            You matched all the shapes! {/* Removed score message */}
+            You matched all the shapes!
           </p>
-          {/* Removed the "Play Again" button here */}
         </motion.div>
       )}
     </motion.div>

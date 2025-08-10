@@ -1,208 +1,249 @@
-  import React, { useState, useEffect, useRef } from 'react';
-  import { motion, AnimatePresence } from 'framer-motion';
-  import Confetti from 'react-confetti';
-  import { useWindowSize } from '@react-hook/window-size';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import Confetti from 'react-confetti';
+import { useWindowSize } from '@react-hook/window-size';
 
-  const TOTAL_LEVELS = 3;
-  const INITIAL_TIMER = 20;
+const TOTAL_LEVELS = 3;
+const INITIAL_TIMER = 20;
 
-  const generateRandomColor = () => {
-    const randomChannel = () => Math.floor(Math.random() * 200);
-    return `rgb(${randomChannel()}, ${randomChannel()}, ${randomChannel()})`;
-  };
+// Define sound effect paths for correct and wrong answers
+const CORRECT_SOUND = 'correct.mp3';
+const WRONG_SOUND = 'wrong.mp3';
 
-  const generateOddColor = (baseColor) => {
-    const channels = baseColor.match(/\d+/g).map(Number);
-    const index = Math.floor(Math.random() * 3);
-    channels[index] = Math.min(channels[index] + 40, 255);
-    return `rgb(${channels.join(',')})`;
-  };
+// Define an array of sound effect paths for game completion
+const WIN_SOUNDS = [
+  'win.mp3',
+  'win2.mp3',
+  'win3.mp3',
+  'win4.mp3',
+  'tada.mp3',
+];
 
-  const generateLevel = () => {
-    const baseColor = generateRandomColor();
-    const oddColor = generateOddColor(baseColor);
-    const oddIndex = Math.floor(Math.random() * 5);
-    const colors = Array(5).fill(baseColor);
-    colors[oddIndex] = oddColor;
-    return { colors, oddIndex };
-  };
+const generateRandomColor = () => {
+  const randomChannel = () => Math.floor(Math.random() * 200);
+  return `rgb(${randomChannel()}, ${randomChannel()}, ${randomChannel()})`;
+};
 
-  const OddColorGame = ({ onComplete }) => {
-    const [currentLevel, setCurrentLevel] = useState(0);
-    const [levels, setLevels] = useState([]);
-    const [optionDisabled, setOptionDisabled] = useState(false);
-    const [showFeedback, setShowFeedback] = useState(null);
-    const [timer, setTimer] = useState(INITIAL_TIMER);
-    const [gameFinished, setGameFinished] = useState(false);
-    const [showConfetti, setShowConfetti] = useState(false);
-    const [width, height] = useWindowSize();
-    const intervalRef = useRef(null);
+const generateOddColor = (baseColor) => {
+  const channels = baseColor.match(/\d+/g).map(Number);
+  const index = Math.floor(Math.random() * 3);
+  channels[index] = Math.min(channels[index] + 40, 255);
+  return `rgb(${channels.join(',')})`;
+};
 
-    const baseUrl = import.meta.env.BASE_URL;
+const generateLevel = () => {
+  const baseColor = generateRandomColor();
+  const oddColor = generateOddColor(baseColor);
+  const oddIndex = Math.floor(Math.random() * 5);
+  const colors = Array(5).fill(baseColor);
+  colors[oddIndex] = oddColor;
+  return { colors, oddIndex };
+};
 
-    useEffect(() => {
-      const newLevels = Array.from({ length: TOTAL_LEVELS }, generateLevel);
-      setLevels(newLevels);
-    }, []);
+const OddColorGame = ({ onComplete }) => {
+  const [currentLevel, setCurrentLevel] = useState(0);
+  const [levels, setLevels] = useState([]);
+  const [optionDisabled, setOptionDisabled] = useState(false);
+  const [showFeedback, setShowFeedback] = useState(null);
+  const [timer, setTimer] = useState(INITIAL_TIMER);
+  const [gameFinished, setGameFinished] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [width, height] = useWindowSize();
+  const intervalRef = useRef(null);
 
-    useEffect(() => {
-      if (!levels.length || gameFinished) return;
-      startTimer();
-      return () => clearInterval(intervalRef.current);
-    }, [currentLevel, levels.length, gameFinished]);
+  const baseUrl = import.meta.env.BASE_URL;
 
-    const startTimer = () => {
-      setTimer(INITIAL_TIMER);
-      clearInterval(intervalRef.current);
-      intervalRef.current = setInterval(() => {
-        setTimer((prev) => {
-          if (prev === 1) {
-            clearInterval(intervalRef.current);
-            handleTimeout();
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    };
+  // Function to play a random winning sound
+  const playWinSound = useCallback(() => {
+    const randomIndex = Math.floor(Math.random() * WIN_SOUNDS.length);
+    const soundPath = `${baseUrl}${WIN_SOUNDS[randomIndex]}`;
+    const audio = new Audio(soundPath);
+    audio.play().catch(error => console.error("Error playing win sound:", error));
+  }, [baseUrl]);
 
-    const handleTimeout = () => {
-      setOptionDisabled(true);
-      setShowFeedback('⏰ Time’s up!');
-      advanceToNextLevel();
-    };
+  // Function to play correct answer sound
+  const playCorrectSound = useCallback(() => {
+    const audio = new Audio(`${baseUrl}${CORRECT_SOUND}`);
+    audio.play().catch(error => console.error("Error playing correct sound:", error));
+  }, [baseUrl]);
 
-    const handleChoice = (index) => {
-      if (optionDisabled) return;
-      clearInterval(intervalRef.current);
-      setOptionDisabled(true);
+  // Function to play wrong answer sound
+  const playWrongSound = useCallback(() => {
+    const audio = new Audio(`${baseUrl}${WRONG_SOUND}`);
+    audio.play().catch(error => console.error("Error playing wrong sound:", error));
+  }, [baseUrl]);
 
-      const isCorrect = index === levels[currentLevel].oddIndex;
-      setShowFeedback(isCorrect ? 'Correct!' : 'Try Again');
+  useEffect(() => {
+    const newLevels = Array.from({ length: TOTAL_LEVELS }, generateLevel);
+    setLevels(newLevels);
+  }, []);
 
-      setTimeout(() => {
-        setShowFeedback(null);
-        if (isCorrect) {
-          advanceToNextLevel();
-        } else {
-          setOptionDisabled(false);
-          startTimer();
+  useEffect(() => {
+    if (!levels.length || gameFinished) return;
+    startTimer();
+    return () => clearInterval(intervalRef.current);
+  }, [currentLevel, levels.length, gameFinished]);
+
+  const startTimer = () => {
+    setTimer(INITIAL_TIMER);
+    clearInterval(intervalRef.current);
+    intervalRef.current = setInterval(() => {
+      setTimer((prev) => {
+        if (prev === 1) {
+          clearInterval(intervalRef.current);
+          handleTimeout();
         }
-      }, 1000);
-    };
+        return prev - 1;
+      });
+    }, 1000);
+  };
 
-    const advanceToNextLevel = () => {
-      setTimeout(() => {
-        setShowFeedback(null);
-        const nextLevel = currentLevel + 1;
-        if (nextLevel < levels.length) {
-          setCurrentLevel(nextLevel);
-          setOptionDisabled(false);
-        } else {
-          triggerGameFinishedCelebration();
-        }
-      }, 1000);
-    };
+  const handleTimeout = () => {
+    setOptionDisabled(true);
+    setShowFeedback('⏰ Time’s up!');
+    playWrongSound(); // Play wrong sound on timeout
+    advanceToNextLevel();
+  };
 
-    const triggerGameFinishedCelebration = () => {
-      setGameFinished(true);
-      setShowConfetti(true);
+  const handleChoice = (index) => {
+    if (optionDisabled) return;
+    clearInterval(intervalRef.current);
+    setOptionDisabled(true);
 
-      setTimeout(() => {
-        setShowConfetti(false);
-        onComplete?.();
-      }, 6000);
-    };
+    const isCorrect = index === levels[currentLevel].oddIndex;
+    setShowFeedback(isCorrect ? 'Correct!' : 'Try Again');
 
-    if (levels.length === 0) return <div>Loading...</div>;
-    const currentColors = levels[currentLevel].colors;
+    if (isCorrect) {
+      playCorrectSound(); // Play correct sound
+    } else {
+      playWrongSound(); // Play wrong sound
+    }
 
-    return (
+    setTimeout(() => {
+      setShowFeedback(null);
+      if (isCorrect) {
+        advanceToNextLevel();
+      } else {
+        setOptionDisabled(false);
+        startTimer();
+      }
+    }, 1000);
+  };
+
+  const advanceToNextLevel = () => {
+    setTimeout(() => {
+      setShowFeedback(null);
+      const nextLevel = currentLevel + 1;
+      if (nextLevel < levels.length) {
+        setCurrentLevel(nextLevel);
+        setOptionDisabled(false);
+      } else {
+        triggerGameFinishedCelebration();
+      }
+    }, 1000);
+  };
+
+  const triggerGameFinishedCelebration = () => {
+    setGameFinished(true);
+    setShowConfetti(true);
+    playWinSound(); // Play a random win sound here! 🎉
+
+    setTimeout(() => {
+      setShowConfetti(false);
+      onComplete?.();
+    }, 6000);
+  };
+
+  if (levels.length === 0) return <div>Loading...</div>;
+  const currentColors = levels[currentLevel].colors;
+
+  return (
+    <motion.div
+      className="fixed inset-0 overflow-hidden flex flex-col items-center justify-center p-4 bg-cover bg-center bg-no-repeat"
+      style={{ backgroundImage: `url(${baseUrl}gameBackground.jpg)` }}
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      transition={{ duration: 0.4 }}
+    >
+      {showConfetti && (
+        <Confetti
+          width={width}
+          height={height}
+          numberOfPieces={2000}
+          gravity={0.3}
+          recycle={false}
+        />
+      )}
+
+      <motion.h2 className="text-3xl font-bold mb-6 text-center text-black drop-shadow">
+        Find the odd color
+      </motion.h2>
+
       <motion.div
-        className="fixed inset-0 overflow-hidden flex flex-col items-center justify-center p-4 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: `url(${baseUrl}gameBackground.jpg)` }}
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.95 }}
-        transition={{ duration: 0.4 }}
+        key={currentLevel}
+        className="flex flex-wrap justify-center items-center gap-4 w-full mb-6"
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.5 }}
       >
-        {showConfetti && (
-          <Confetti
-            width={width}
-            height={height}
-            numberOfPieces={2000}
-            gravity={0.3}
-            recycle={false}
-          />
-        )}
-
-        <motion.h2 className="text-3xl font-bold mb-6 text-center text-black drop-shadow">
-          Find the odd color
-        </motion.h2>
-
-        <motion.div
-          key={currentLevel}
-          className="flex flex-wrap justify-center items-center gap-4 w-full mb-6"
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          {currentColors.map((color, index) => (
-            <motion.button
-              key={index}
-              className="rounded-xl w-[80px] h-[80px] sm:w-[140px] sm:h-[240px] flex items-end justify-center p-1 shadow-lg transition-transform text-white text-xl font-bold"
-              style={{ backgroundColor: color }}
-              onClick={() => handleChoice(index)}
-              disabled={optionDisabled}
-              whileTap={{ scale: 0.95 }}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: index * 0.1, duration: 0.4 }}
-            >
-              {index + 1}
-            </motion.button>
-          ))}
-        </motion.div>
-
-        <p className="text-lg font-semibold text-black drop-shadow mb-2">
-          Time left: {timer}s
-        </p>
-
-        <AnimatePresence>
-          {showFeedback && (
-            <motion.div
-              key="feedback"
-              className={`fixed inset-0 flex items-center justify-center z-50 ${
-                showFeedback.includes('Correct')
-                  ? 'bg-gradient-to-br from-green-200 via-green-300 to-green-700'
-                  : 'bg-gradient-to-br from-red-200 via-red-300 to-red-700'
-              }`}
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8 }}
-              transition={{ duration: 0.3 }}
-            >
-              <motion.img
-                src={
-                  showFeedback.includes('Correct')
-                    ? `${baseUrl}check.png`
-                    : `${baseUrl}xmark.png`
-                }
-                alt="Feedback Icon"
-                className="w-40 h-40 mb-4 drop-shadow-2xl"
-                initial={{ scale: 0 }}
-                animate={{ scale: 1.4 }}
-                exit={{ scale: 0 }}
-                transition={{ type: 'spring', stiffness: 500, damping: 20 }}
-              />
-              <p className="absolute bottom-20 text-white text-3xl font-extrabold drop-shadow-md">
-                {showFeedback}
-              </p>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {currentColors.map((color, index) => (
+          <motion.button
+            key={index}
+            className="rounded-xl w-[120px] h-[120px] sm:w-[180px] sm:h-[340px] flex items-end justify-center p-1 shadow-lg transition-transform text-white text-xl font-bold" /* Increased size */
+            style={{ backgroundColor: color }}
+            onClick={() => handleChoice(index)}
+            disabled={optionDisabled}
+            whileTap={{ scale: 0.95 }}
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: index * 0.1, duration: 0.4 }}
+          >
+            {index + 1}
+          </motion.button>
+        ))}
       </motion.div>
-    );
-  };
 
-  export default OddColorGame;
+      <p className="text-lg font-semibold text-black drop-shadow mb-2">
+        Time left: {timer}s
+      </p>
+
+      <AnimatePresence>
+        {showFeedback && (
+          <motion.div
+            key="feedback"
+            className={`fixed inset-0 flex items-center justify-center z-50 ${
+              showFeedback.includes('Correct')
+                ? 'bg-gradient-to-br from-green-200 via-green-300 to-green-700'
+                : 'bg-gradient-to-br from-red-200 via-red-300 to-red-700'
+            }`}
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            transition={{ duration: 0.3 }}
+          >
+            <motion.img
+              src={
+                showFeedback.includes('Correct')
+                  ? `${baseUrl}check.png`
+                  : `${baseUrl}xmark.png`
+              }
+              alt="Feedback Icon"
+              className="w-40 h-40 mb-4 drop-shadow-2xl"
+              initial={{ scale: 0 }}
+              animate={{ scale: 1.4 }}
+              exit={{ scale: 0 }}
+              transition={{ type: 'spring', stiffness: 500, damping: 20 }}
+            />
+            <p className="absolute bottom-20 text-white text-3xl font-extrabold drop-shadow-md">
+              {showFeedback}
+            </p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
+  );
+};
+
+export default OddColorGame;

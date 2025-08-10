@@ -1,0 +1,35 @@
+/* Update this in your index.css or a relevant CSS file */
+
+@keyframes chest-shine-animation {
+    0% {
+      opacity: 0; /* Starts completely transparent (no shine) */
+      background: radial-gradient(circle, #FFD700, #FFC107, #FFA000); /* Gold colors */
+    }
+    20% {
+      opacity: 0.1; /* Very subtle shine begins to appear */
+      background: radial-gradient(circle, #FFD700, #FFC107, #FFA000);
+    }
+    50% {
+      opacity: 0.4; /* The shine becomes more noticeable */
+      background: radial-gradient(circle, #FFC107, #FFD700, #FFA000);
+    }
+    80% {
+      opacity: 0.8; /* Getting closer to full brightness */
+      background: radial-gradient(circle, #FFA000, #FFC107, #FFD700);
+    }
+    100% {
+      opacity: 1; /* Reaches full, brightest shine at the end of the animation */
+      background: radial-gradient(circle, #FFA000, #FFC107, #FFD700);
+    }
+  }
+  
+  .chest-shine-overlay {
+    position: absolute; /* Ensures it covers the parent div */
+    inset: 0;
+    z-index: 50;
+    pointer-events: none; /* Allows clicks to pass through elements beneath it */
+    animation-name: chest-shine-animation;
+    animation-duration: 3s; /* The duration for the CSS animation (fade-in and hold) */
+    animation-fill-mode: forwards; /* Keeps the last frame of the animation */
+    animation-timing-function: ease-in-out;
+  }

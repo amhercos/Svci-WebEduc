@@ -145,6 +145,26 @@ const BubbleShooterGame = ({ onComplete }) => {
   const isProcessing = useRef(false);
   const { width, height } = useWindowSize();
 
+  // Audio refs
+  const bubblePopSound = useRef(null);
+  const cupWooshSound = useRef(null);
+  const bubbleBombSound = useRef(null); // New ref for bomb sound
+  const winSound1 = useRef(null); // Ref for win sound 1
+  const winSound2 = useRef(null); // Ref for win sound 2
+  const winSound3 = useRef(null); // Ref for win sound 3
+  const winSound4 = useRef(null); // Ref for win sound 4
+
+  const winSounds = useRef([]); // Array to hold win sound refs
+
+  useEffect(() => {
+    // Populate the array of win sound refs once they are available
+    if (winSound1.current) winSounds.current.push(winSound1.current);
+    if (winSound2.current) winSounds.current.push(winSound2.current);
+    if (winSound3.current) winSounds.current.push(winSound3.current);
+    if (winSound4.current) winSounds.current.push(winSound4.current);
+  }, []);
+
+
   const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
   const getNeighbors = useCallback((row, col) => {
@@ -187,6 +207,19 @@ const BubbleShooterGame = ({ onComplete }) => {
     }
   }, [gameState, generateBubble]);
 
+  // Effect to play win sound when gameState changes to 'won'
+  useEffect(() => {
+    if (gameState === 'won' && winSounds.current.length > 0) {
+      const randomIndex = Math.floor(Math.random() * winSounds.current.length);
+      const selectedSound = winSounds.current[randomIndex];
+      if (selectedSound) {
+        selectedSound.currentTime = 0; // Rewind to start
+        selectedSound.play();
+      }
+    }
+  }, [gameState]);
+
+
   const setupNextShot = useCallback(() => {
     setCurrentBubble(nextBubble);
     setNextBubble(generateBubble());
@@ -221,6 +254,13 @@ const BubbleShooterGame = ({ onComplete }) => {
     if (!currentBubble || gameState !== 'playing' || !gameBoardRef.current || isProcessing.current) return;
     isProcessing.current = true;
     setAimLine(null);
+
+    // Play cupwoosh sound
+    if (cupWooshSound.current) {
+        cupWooshSound.current.currentTime = 0; // Rewind to start
+        cupWooshSound.current.play();
+    }
+
     const boardRect = gameBoardRef.current.getBoundingClientRect();
     const shooterX = boardRect.width / 2;
     const shooterY = boardRect.height - BUBBLE_RADIUS;
@@ -331,6 +371,12 @@ const BubbleShooterGame = ({ onComplete }) => {
           const y = row * ROW_HEIGHT;
           setExplosions(prev => [...prev, { id: Date.now(), x, y }]);
 
+          // Play bubble bomb sound for bomb explosion
+          if (bubbleBombSound.current) {
+              bubbleBombSound.current.currentTime = 0;
+              bubbleBombSound.current.play();
+          }
+
           let toPop = [];
           const bombCenter = { x: x + BUBBLE_RADIUS, y: y + BUBBLE_RADIUS };
           const blastRadius = BUBBLE_DIAMETER * 2.2; // Increased radius
@@ -349,6 +395,11 @@ const BubbleShooterGame = ({ onComplete }) => {
               if(popGrid[bubble.row]?.[bubble.col]) popGrid[bubble.row][bubble.col].isPopping = true;
           }
           setGrid(popGrid);
+          // Only play bubble pop sound for regular bubble pops, not bomb explosion
+          // if (bubblePopSound.current) {
+          //     bubblePopSound.current.currentTime = 0;
+          //     bubblePopSound.current.play();
+          // }
           await sleep(300);
           await handlePostPop(popGrid);
       }
@@ -417,14 +468,19 @@ const BubbleShooterGame = ({ onComplete }) => {
     }
 
     if (matches.length >= 3) {
+      // Play bubblepop sound
+      if (bubblePopSound.current) {
+          bubblePopSound.current.currentTime = 0; // Rewind to start
+          bubblePopSound.current.play();
+      }
+
       let popGrid = currentGrid.map(r => r.map(b => b ? {...b} : null));
       for (let i = 0; i < matches.length; i++) {
           const {row, col} = matches[i];
           if(popGrid[row][col]) popGrid[row][col].isPopping = true;
-          setGrid(popGrid.map(r => [...r]));
-          await sleep(50);
       }
-      await sleep(200);
+      setGrid(popGrid.map(r => [...r])); // Trigger re-render for popping animation
+      await sleep(200); // Wait for pop animation
       await handlePostPop(popGrid);
     } else {
       setGrid(currentGrid);
@@ -440,12 +496,22 @@ const BubbleShooterGame = ({ onComplete }) => {
       onMouseMove={handleAim}
       onClick={handleShoot}
     >
+      {/* Audio elements */}
+      <audio ref={bubblePopSound} src="/bubblepop.mp3" preload="auto"></audio>
+      <audio ref={cupWooshSound} src="/cupwoosh.mp3" preload="auto"></audio>
+      <audio ref={bubbleBombSound} src="/bubblebomb.mp3" preload="auto"></audio> {/* New audio element for bomb sound */}
+      <audio ref={winSound1} src="/win.mp3" preload="auto"></audio>
+      <audio ref={winSound2} src="/win2.mp3" preload="auto"></audio>
+      <audio ref={winSound3} src="/win3.mp3" preload="auto"></audio>
+      <audio ref={winSound4} src="/win4.mp3" preload="auto"></audio>
+
       <AnimatePresence>
         {gameState === 'won' && (
           <motion.div 
             className="absolute inset-0 bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center z-50" 
             initial={{ opacity: 0 }} 
             animate={{ opacity: 1 }}
+            transition={{ delay: 0.2, type: 'spring', stiffness: 150 }}
           >
             <Confetti width={width} height={height} recycle={false} numberOfPieces={500} />
             <motion.div
@@ -458,7 +524,7 @@ const BubbleShooterGame = ({ onComplete }) => {
                     onClick={onComplete} 
                     className="px-8 py-4 bg-yellow-400 text-amber-800 font-bold text-xl rounded-xl shadow-lg hover:bg-yellow-500 transition-transform transform hover:scale-105"
                 >
-                  Continue
+                    Continue
                 </button>
             </motion.div>
           </motion.div>

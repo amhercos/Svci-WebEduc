@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Confetti from 'react-confetti';
 import { useWindowSize } from '@react-hook/window-size';
@@ -17,6 +17,18 @@ const colorPalettes = [
   { top: '#8B5CF6', bottom: '#7C3AED' }, // Purple
   { top: '#F97316', bottom: '#EA580C' }, // Orange
 ];
+
+// Define an array of sound effect paths for game completion
+const WIN_SOUNDS = [
+  'win.mp3',
+  'win2.mp3',
+  'win3.mp3',
+  'win4.mp3',
+  'tada.mp3',
+];
+
+// Define sound effect path for cup woosh
+const CUP_WOOSH_SOUND = 'cupwoosh.mp3'; // Ensure you have this file in your public folder
 
 // A simple function to create a delay using async/await
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -62,15 +74,15 @@ const CupIcon = ({ isLifted, color, ...props }) => (
 
 const BallIcon = (props) => (
   <motion.div {...props} className="absolute bottom-[-10px] z-0">
-     <svg width="60" height="60" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="50" cy="50" r="50" fill="url(#paint0_radial_101_3)"/>
-        <defs>
-            <radialGradient id="paint0_radial_101_3" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(65 35) rotate(90) scale(45)">
-                <stop stopColor="#F87171"/>
-                <stop offset="1" stopColor="#DC2626"/>
-            </radialGradient>
-        </defs>
-    </svg>
+      <svg width="60" height="60" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+         <circle cx="50" cy="50" r="50" fill="url(#paint0_radial_101_3)"/>
+         <defs>
+             <radialGradient id="paint0_radial_101_3" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(65 35) rotate(90) scale(45)">
+                 <stop stopColor="#F87171"/>
+                 <stop offset="1" stopColor="#DC2626"/>
+             </radialGradient>
+         </defs>
+     </svg>
   </motion.div>
 );
 
@@ -85,6 +97,20 @@ const CupAndBallGame = ({ onComplete }) => {
   const [showConfetti, setShowConfetti] = useState(false);
   // State to hold the current color of the cups for this game round.
   const [cupColor, setCupColor] = useState(colorPalettes[0]);
+
+  // Function to play a random winning sound
+  const playWinSound = useCallback(() => {
+    const randomIndex = Math.floor(Math.random() * WIN_SOUNDS.length);
+    const soundPath = `${baseUrl}${WIN_SOUNDS[randomIndex]}`;
+    const audio = new Audio(soundPath);
+    audio.play().catch(error => console.error("Error playing win sound:", error));
+  }, [baseUrl]);
+
+  // Function to play cup woosh sound
+  const playCupWooshSound = useCallback(() => {
+    const audio = new Audio(`${baseUrl}${CUP_WOOSH_SOUND}`);
+    audio.play().catch(error => console.error("Error playing cup woosh sound:", error));
+  }, [baseUrl]);
 
   // Set a random color when the component first loads.
   useEffect(() => {
@@ -136,6 +162,7 @@ const CupAndBallGame = ({ onComplete }) => {
           return c;
         });
       });
+      playCupWooshSound(); // Play woosh sound when cups start moving horizontally
       await sleep(1000); // Wait for horizontal swap to complete
 
       // Step 3: Lower the cups back to their positions
@@ -159,6 +186,7 @@ const CupAndBallGame = ({ onComplete }) => {
     if (clickedCup.hasBall) {
       setMessage('You found it! 🎉');
       setShowConfetti(true);
+      playWinSound(); // Play win sound when ball is found
       setTimeout(() => {
         onComplete();
       }, 4000);
@@ -166,7 +194,7 @@ const CupAndBallGame = ({ onComplete }) => {
       setMessage('Not this one... Try Again!');
       // After a short delay, also lift the correct cup to show the user
       setTimeout(() => {
-         setCups(prevCups => prevCups.map(cup => ({...cup, isLifted: cup.isLifted || cup.hasBall })));
+          setCups(prevCups => prevCups.map(cup => ({...cup, isLifted: cup.isLifted || cup.hasBall })));
       }, 700);
     }
   };
@@ -232,7 +260,7 @@ const CupAndBallGame = ({ onComplete }) => {
           )}
 
           {gamePhase === 'revealed' && !showConfetti && (
-             <motion.button
+              <motion.button
               key="play-again-btn"
               onClick={resetGame}
               className="px-8 py-4 bg-white text-sky-800 font-bold text-xl rounded-xl shadow-lg hover:bg-gray-100 transition-transform transform hover:scale-105"

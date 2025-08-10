@@ -1,5 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react'; // Import useEffect and useCallback
 import './PokemonGame.css';
+
+// Define sound effect paths
+const POKEBALL_CLICK_SOUND = 'pokeballclick.mp3';
+const POKEMON_CAUGHT_SOUND = 'pokemoncaught.m4a'; // M4A is good, as discussed!
 
 const getRandomPokemonId = () => Math.floor(Math.random() * 151) + 1;
 
@@ -13,7 +17,6 @@ const flashVariants = [
   'flash-psychic',
   'flash-dragon',
   'flash-grass',
-
 ];
 
 const PokemonGame = ({ onComplete }) => {
@@ -25,6 +28,20 @@ const PokemonGame = ({ onComplete }) => {
   const [flashClass, setFlashClass] = useState('flash-shine');
 
   const baseUrl = import.meta.env.BASE_URL;
+
+  // Function to play pokeball click sound
+  const playPokeballClickSound = useCallback(() => {
+    const audio = new Audio(`${baseUrl}${POKEBALL_CLICK_SOUND}`);
+    audio.play().catch(error => console.error("Error playing pokeball click sound:", error));
+  }, [baseUrl]);
+
+  // Function to play pokemon caught sound
+  const playPokemonCaughtSound = useCallback(() => {
+    const audio = new Audio(`${baseUrl}${POKEMON_CAUGHT_SOUND}`);
+    // Specify the correct MIME type for M4A
+    audio.type = 'audio/mp4'; // Or 'audio/x-m4a' if 'audio/mp4' doesn't work universally
+    audio.play().catch(error => console.error("Error playing pokemon caught sound:", error));
+  }, [baseUrl]);
 
   const fetchPokemon = async () => {
     const id = getRandomPokemonId();
@@ -41,6 +58,8 @@ const PokemonGame = ({ onComplete }) => {
   };
 
   const handlePokeballClick = () => {
+    playPokeballClickSound(); // Play sound when pokeball is clicked
+
     const randomFlash = flashVariants[Math.floor(Math.random() * flashVariants.length)];
     setFlashClass(randomFlash);
     setGlow(true);
@@ -53,6 +72,13 @@ const PokemonGame = ({ onComplete }) => {
       fetchPokemon();
     }, 4000);
   };
+
+  // Effect to play pokemon caught sound once the pokemon is revealed
+  useEffect(() => {
+    if (reveal && pokemon) {
+      playPokemonCaughtSound(); // Play sound when pokemon is revealed
+    }
+  }, [reveal, pokemon, playPokemonCaughtSound]); // Dependencies for this effect
 
   const backgroundImageUrl = flashDone
     ? `${baseUrl}pokemonBackground.jpg`
