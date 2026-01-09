@@ -11,9 +11,9 @@ function WordInput({ currentWord, setCurrentWord, onSubmit, onPlayClickSound }) 
   };
 
   const authors = [
-    "Althea Nikka",
-    "Cherry Mae",
-    "Cheryl",
+    "Althea Nikka Gerzon",
+    "Cherry Mae Amarille",
+    "Cheryl Bagood",
   ];
 
   return (
