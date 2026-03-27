@@ -16,6 +16,12 @@ function WordInput({ currentWord, setCurrentWord, onSubmit, onPlayClickSound }) 
     "Cheryl Bagood",
   ];
 
+
+  const developer = {
+    name: "Amher Cosaine Timpahan",
+    role: "Developer"
+  };
+
   return (
     <div
       className="fixed inset-0 flex items-center justify-center bg-cover bg-center bg-no-repeat px-4 font-sans"
@@ -62,36 +68,30 @@ function WordInput({ currentWord, setCurrentWord, onSubmit, onPlayClickSound }) 
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="relative p-8 rounded-2xl bg-white/80 shadow-2xl w-full max-w-sm text-center"
+              className="relative p-8 rounded-2xl bg-white/90 shadow-2xl w-full max-w-sm text-center"
             >
               <button
                 onClick={() => setShowCredits(false)}
-                className="absolute top-4 right-4 text-gray-600 hover:text-gray-900 transition-colors duration-200"
+                className="absolute top-4 right-4 text-gray-500 hover:text-gray-900 transition-colors duration-200"
                 aria-label="Close"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <line x1="18" y1="6" x2="6" y2="18" />
-                  <line x1="6" y1="6" x2="18" y2="18" />
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
                 </svg>
               </button>
-              <h2 className="text-3xl font-bold mb-4 text-gray-800 tracking-wider"></h2>
-              <div className="font-light text-xl text-gray-700 space-y-2">
+
+              <h2 className="text-sm uppercase tracking-widest font-bold text-sky-600 mb-2">Project Authors</h2>
+              <div className="text-lg text-gray-800 space-y-1 mb-6">
                 {authors.map((author, index) => (
-                  <div key={index} className=" font-bold py-2 rounded-lg">
-                    {author}
-                  </div>
+                  <div key={index} className="font-medium">{author}</div>
                 ))}
               </div>
+
+              <hr className="border-gray-300 mb-6 w-1/2 mx-auto" />
+
+              <h2 className="text-sm uppercase tracking-widest font-bold text-sky-600 mb-1">System Development</h2>
+              <div className="text-xl font-bold text-gray-900">{developer.name}</div>
+              <p className="text-sm text-gray-500 italic">{developer.role}</p>
             </motion.div>
           </motion.div>
         )}
